@@ -32,14 +32,20 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         cellname = f'cell-{cells[0]+1:02d}'
 
     # load experimental data
-    if model_args is 'single frame':
-        data = loadexpt(expt, cells, stim, 'train', 1, 6000, cutout_width=width)
-    else:
-        data = loadexpt(expt, cells, stim, 'train', 40, 6000, cutout_width=width)
+    data = loadexpt(expt, cells, stim, 'train', 40, 6000, cutout_width=width)
 
+    # flatten if
+    newX = None
+    if model_args is 'flatten':
+        input_shape = data.X.shape
+        print(input_shape)
+        newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
+    else:
+        newX = data.X
+    print(newX.shape)
     # build the model
     n_cells = data.y.shape[1]
-    x = Input(shape=data.X.shape[1:])
+    x = Input(shape=newX.shape[1:])
     mdl = model(x, n_cells, *model_args)
 
     # compile the model
@@ -58,7 +64,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
            cb.EarlyStopping(monitor='val_loss', patience=20)]
 
     # train
-    history = mdl.fit(x=data.X, y=data.y, batch_size=bz, epochs=nb_epochs,
+    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
                       callbacks=cbs, validation_split=val_split, shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
