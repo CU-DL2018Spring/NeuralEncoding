@@ -76,7 +76,7 @@ def nips_cnn(inputs, n_out):
     return Model(inputs, outputs, name='NIPS_CNN')
 
 from keras.layers import RNN
-def fc_rnn(inputs, n_out)
+def fc_rnn(inputs, n_out):
     """Fully Connected RNN (Batty et al.)"""
     y = Flatten()(y)
     y = RNN(50)(y)
