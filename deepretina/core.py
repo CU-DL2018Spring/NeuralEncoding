@@ -32,7 +32,10 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         cellname = f'cell-{cells[0]+1:02d}'
 
     # load experimental data
-    data = loadexpt(expt, cells, stim, 'train', 40, 6000, cutout_width=width)
+    if model_args is 'single frame':
+        data = loadexpt(expt, cells, stim, 'train', 1, 6000, cutout_width=width)
+    else:
+        data = loadexpt(expt, cells, stim, 'train', 40, 6000, cutout_width=width)
 
     # build the model
     n_cells = data.y.shape[1]

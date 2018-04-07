@@ -78,7 +78,7 @@ def nips_cnn(inputs, n_out):
 from keras.layers import RNN
 def fc_rnn(inputs, n_out):
     """Fully Connected RNN (Batty et al.)"""
-    y = Flatten()(y)
+    y = Flatten()(inputs)
     y = RNN(50)(y)
     y = RNN(50)(y)
     y = Dense(n_out, init='normal', kernel_regularizer=l2(1e-3), activity_regularizer=l1(1e-3))(y)
