@@ -34,3 +34,10 @@ cd /home/ubuntu/experiments/data/
 wget https://www.dropbox.com/s/pslelorr1xtnlko/15_10_07_retina_dataset.zip?dl=0 15_10_07_retina_dataset.zip
 unzip 15_10_07_retina_dataset.zip
 mv 15_10_07_retina_dataset 15-10-17
+
+# Download repository
+# Assume ssh key has been set up
+cd /home/ubuntu
+git clone git@github.com:CU-DL2018Spring/NeuralEncoding.git
+cd NeuralEncoding
+mkdir results
