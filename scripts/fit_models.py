@@ -2,7 +2,7 @@
 fit LN and BN_CNN models
 """
 import sys
-sys.path.append('/Users/louis/Documents/GitHub/NeuralEncoding')
+sys.path.append('/home/ubuntu/NeuralEncoding')
 import os
 import functools
 import argparse
