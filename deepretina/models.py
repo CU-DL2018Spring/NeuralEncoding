@@ -86,10 +86,13 @@ def fc_rnn(inputs, n_out, *args):
 
     return Model(inputs, outputs, name="FC_RNN")
 
-def spatial_cnn(inputs, n_out, *args):
+def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no temporal dimension"""
-    #Placeholder for now
-    return bn_cnn(inputs, n_out)
+    y = bn_layer(inputs, 2, 15, l2_reg)
+    y = bn_layer(y, 4, 11, l2_reg)
+    y = Dense(n_out)(Flatten()(y))
+    outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
+    return Model(inputs, outputs, name='SPAT_CNN')
 
 # aliases
 ln = linear_nonlinear
