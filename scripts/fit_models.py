@@ -46,7 +46,7 @@ def fit_ln(expt, ci, stim, activation, l2_reg=0.1):
 
 @context
 def fit_fc_rnn(expt, stim):
-    train(fc_rnn, expt, stim, model_args="flatten", lr=1e-2, nb_epochs=250, val_split=0.05)
+    train(fc_rnn, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

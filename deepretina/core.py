@@ -36,7 +36,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # flatten if
     newX = None
-    if model_args is 'flatten':
+    if 'flatten' in model_args:
+        print("flatten!")
         input_shape = data.X.shape
         print(input_shape)
         newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
@@ -46,10 +47,15 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     # build the model
     n_cells = data.y.shape[1]
     x = Input(shape=newX.shape[1:])
+    print("newX.shape[1:] = ", newX.shape[1:])
     mdl = model(x, n_cells, *model_args)
 
     # compile the model
-    mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+    if 'mse' in model_args:
+        print("mse!")
+        mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+    else:
+        mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
 
     # store results in this directory
     name = '_'.join([mdl.name, cellname, expt, stim, datetime.now().strftime('%Y.%m.%d-%H.%M')])

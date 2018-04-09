@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -78,12 +78,12 @@ def nips_cnn(inputs, n_out):
 from keras.layers import RNN
 def fc_rnn(inputs, n_out, *args):
     """Fully Connected RNN (Batty et al.)"""
-    print(inputs.shape)
-    y = SimpleRNN(50, return_sequences=True)(inputs)
-    y = SimpleRNN(50)(y)
-    y = Dense(n_out, init='normal', kernel_regularizer=l2(1e-3), activity_regularizer=l1(1e-3))(y)
+    print("input shape = ", inputs.shape)
+    y = SimpleRNN(50, activation='relu', return_sequences=True)(inputs)
+    y = SimpleRNN(50, activation='relu')(y)
+    y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
-    return Model(inputs, outputs)
+    return Model(inputs, outputs, name="FC_RNN")
 # aliases
 ln = linear_nonlinear
