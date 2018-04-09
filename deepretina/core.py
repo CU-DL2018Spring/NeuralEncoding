@@ -31,8 +31,15 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         width = 11
         cellname = f'cell-{cells[0]+1:02d}'
 
+    # Get rid of temporal dimension
+    if 'spatial' in model_args:
+        print("spatial")
+        window = 1
+    else:
+        window = 40
+
     # load experimental data
-    data = loadexpt(expt, cells, stim, 'train', 40, 6000, cutout_width=width)
+    data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
 
     # flatten if
     newX = None

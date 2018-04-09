@@ -2,7 +2,7 @@
 fit LN and BN_CNN models
 """
 import sys
-sys.path.append('/home/ubuntu/NeuralEncoding')
+sys.path.append('../')
 import os
 import functools
 import argparse
@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn
 
 
 def context(func):
@@ -48,6 +48,10 @@ def fit_ln(expt, ci, stim, activation, l2_reg=0.1):
 def fit_fc_rnn(expt, stim):
     train(fc_rnn, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
+@context
+def fit_spatial_cnn(expt, stim):
+    train(spatial_cnn, expt, stim, model_args=("spatial"), lr=1e-2, nb_epochs=250, val_split=0.05)
+
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -66,6 +70,8 @@ if __name__ == '__main__':
         fit_bn_cnn(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN':
         fit_fc_rnn(args.expt, args.stim)
+    elif args.model.upper() == 'SPATIAL_CNN':
+        fit_spatial_cnn(args.expt, args.stim)
     elif args.model.upper() == 'NIPS_CNN':
         fit_nips_cnn(args.expt, args.stim)
     elif args.model.split('_')[0].upper() == 'LN':

@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -85,5 +85,11 @@ def fc_rnn(inputs, n_out, *args):
     outputs = Activation('softplus')(y)
 
     return Model(inputs, outputs, name="FC_RNN")
+
+def spatial_cnn(inputs, n_out, *args):
+    """Standard CNN with no temporal dimension"""
+    #Placeholder for now
+    return bn_cnn(inputs, n_out)
+
 # aliases
 ln = linear_nonlinear
