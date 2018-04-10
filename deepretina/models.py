@@ -86,12 +86,16 @@ def fc_rnn(inputs, n_out, *args):
 
     return Model(inputs, outputs, name="FC_RNN")
 
+from keras.layers import Dropout
 def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no temporal dimension"""
-    y = bn_layer(inputs, 2, 15, l2_reg)
-    y = bn_layer(y, 4, 11, l2_reg)
+    print(inputs.shape)
+    y = Conv2D(2, 15, data_format="channels_first")(inputs)
+    y = Dropout(0.2)(y)
+    y = Conv2D(4, 11, data_format="channels_first")(y)
+    y = Dropout(0.2)(y)
     y = Dense(n_out)(Flatten()(y))
-    outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
+    outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='SPAT_CNN')
 
 # aliases
