@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -107,6 +107,20 @@ def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
     y = Dense(n_out)(Flatten()(y))
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='COPY_CNN')
+
+from keras.layers import TimeDistributed
+from keras.layers import LSTM
+def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
+    """Convolution on each stimulus, then pass sequence to an LSTM"""
+    print(inputs.shape)
+    # Applies this conv layer to each stimulus in the sequence individually
+    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)))(inputs)
+    y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3)))(y)
+    # Flatten feature maps to pass to LSTM
+    y = LSTM(50, activation='relu')(Flatten()(y))
+    y = Dense(n_out, init='normal')(y)
+    outputs = Activation('softplus')(y)
+    return Model(inputs, outputs, name="CONV_TO_LSTM")
 
 # aliases
 ln = linear_nonlinear
