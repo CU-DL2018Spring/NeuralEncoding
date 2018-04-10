@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn
 
 
 def context(func):
@@ -52,6 +52,10 @@ def fit_fc_rnn(expt, stim):
 def fit_spatial_cnn(expt, stim):
     train(spatial_cnn, expt, stim, model_args=("spatial"), lr=1e-2, nb_epochs=250, val_split=0.05)
 
+@context
+def fit_copy_cnn(expt, stim):
+    train(copy_cnn, expt, stim, model_args=(), lr=1e-2, nb_epochs=250, val_split=0.05)
+
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -72,6 +76,8 @@ if __name__ == '__main__':
         fit_fc_rnn(args.expt, args.stim)
     elif args.model.upper() == 'SPATIAL_CNN':
         fit_spatial_cnn(args.expt, args.stim)
+    elif args.model.upper() == 'COPY_CNN':
+        fit_copy_cnn(args.expt, args.stim)
     elif args.model.upper() == 'NIPS_CNN':
         fit_nips_cnn(args.expt, args.stim)
     elif args.model.split('_')[0].upper() == 'LN':

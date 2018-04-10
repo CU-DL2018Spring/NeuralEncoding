@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -97,6 +97,16 @@ def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     y = Dense(n_out)(Flatten()(y))
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='SPAT_CNN')
+
+from keras.layers import Dropout
+def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
+    """Standard CNN with no temporal dimension"""
+    print(inputs.shape)
+    y = Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3))(inputs)
+    y = Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3))(y)
+    y = Dense(n_out)(Flatten()(y))
+    outputs = Activation('softplus')(y)
+    return Model(inputs, outputs, name='COPY_CNN')
 
 # aliases
 ln = linear_nonlinear
