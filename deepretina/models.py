@@ -114,7 +114,7 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     """Convolution on each stimulus, then pass sequence to an LSTM"""
     print(inputs.shape)
     # Applies this conv layer to each stimulus in the sequence individually
-    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)))(inputs)
+    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)), input_shape=(40, 50, 50, 1))(inputs)
     y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3)))(y)
     # Flatten feature maps to pass to LSTM
     y = LSTM(50, activation='relu')(Flatten()(y))
