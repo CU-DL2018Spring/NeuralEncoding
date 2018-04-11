@@ -10,6 +10,7 @@ from deepretina import metrics, activations
 from deepretina.experiments import loadexpt, CELLS
 from keras.models import load_model
 from keras.optimizers import Adam
+import numpy as np
 
 __all__ = ['train', 'load']
 
@@ -41,9 +42,22 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
 
-    # flatten if
     newX = None
-    if 'flatten' in model_args:
+    # Add channels, and set window to temporal dimension for conv_to_lstm
+    if "c2l" in model_args:
+        print("c2l!")
+        input_shape = data.X.shape
+        print(input_shape)
+        # All three methods work, decide later if any of them are preferable
+        newX = data.X[:,:,np.newaxis,:,:]
+        print("newX = ", newX.shape)
+        #newX2 = np.expand_dims(data.X, axis=2)
+        #print("newX2 = ", newX2.shape)
+        #newX3 = data.X.reshape(input_shape[0], input_shape[1], 1, input_shape[2], input_shape[3])
+        #print("newX3 = ", newX3.shape)
+
+    # flatten if
+    elif 'flatten' in model_args:
         print("flatten!")
         input_shape = data.X.shape
         print(input_shape)
