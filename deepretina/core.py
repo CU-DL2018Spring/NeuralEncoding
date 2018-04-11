@@ -11,6 +11,7 @@ from deepretina.experiments import loadexpt, CELLS
 from keras.models import load_model
 from keras.optimizers import Adam
 import numpy as np
+import tensorflow as tf
 
 __all__ = ['train', 'load']
 
@@ -22,7 +23,7 @@ def load(filepath):
     return load_model(filepath, custom_objects=objects)
 
 
-def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val_split=0.05, cells=None):
+def train(model, expt, stim, model_args=(), lr=1e-2, bz=1000, nb_epochs=500, val_split=0.05, cells=None):
     """Trains a model"""
     if cells is None:
         width = None
@@ -72,11 +73,12 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     mdl = model(x, n_cells, *model_args)
 
     # compile the model
+    run_opts = tf.RunOptions(report_tensor_allocations_upon_oom = True)
     if 'mse' in model_args:
         print("mse!")
-        mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+        mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev], options=run_opts)
     else:
-        mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+        mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev], options=run_opts)
 
     # store results in this directory
     name = '_'.join([mdl.name, cellname, expt, stim, datetime.now().strftime('%Y.%m.%d-%H.%M')])
