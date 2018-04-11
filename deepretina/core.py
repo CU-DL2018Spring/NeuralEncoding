@@ -23,7 +23,7 @@ def load(filepath):
     return load_model(filepath, custom_objects=objects)
 
 
-def train(model, expt, stim, model_args=(), lr=1e-2, bz=1000, nb_epochs=500, val_split=0.05, cells=None):
+def train(model, expt, stim, model_args=(), lr=1e-2, bz=128, nb_epochs=500, val_split=0.05, cells=None):
     """Trains a model"""
     if cells is None:
         width = None
