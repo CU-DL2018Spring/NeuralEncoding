@@ -12,6 +12,7 @@ from keras.models import load_model
 from keras.optimizers import Adam
 import numpy as np
 import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 __all__ = ['train', 'load']
 
@@ -23,7 +24,7 @@ def load(filepath):
     return load_model(filepath, custom_objects=objects)
 
 
-def train(model, expt, stim, model_args=(), lr=1e-2, bz=128, nb_epochs=500, val_split=0.05, cells=None):
+def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val_split=0.05, cells=None):
     """Trains a model"""
     if cells is None:
         width = None
@@ -42,15 +43,17 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=128, nb_epochs=500, val_
 
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
+    X_train, X_val, y_train, y_val = train_test_split(data.X, data.y, test_size=val_split)
+    
 
     newX = None
     # Add channels, and set window to temporal dimension for conv_to_lstm
     if "c2l" in model_args:
         print("c2l!")
-        input_shape = data.X.shape
+        input_shape = X_train.shape
         print(input_shape)
         # All three methods work, decide later if any of them are preferable
-        newX = data.X[:,:,np.newaxis,:,:]
+        newX = X_train[:,:,np.newaxis,:,:]
         print("newX = ", newX.shape)
         #newX2 = np.expand_dims(data.X, axis=2)
         #print("newX2 = ", newX2.shape)
@@ -64,7 +67,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=128, nb_epochs=500, val_
         print(input_shape)
         newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
     else:
-        newX = data.X
+        newX = X_train
     print(newX.shape)
     # build the model
     n_cells = data.y.shape[1]
@@ -93,8 +96,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=128, nb_epochs=500, val_
            cb.EarlyStopping(monitor='val_loss', patience=20)]
 
     # train
-    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_split=val_split, shuffle=True)
+    history = mdl.fit(x=newX, y=y_train, batch_size=bz, epochs=nb_epochs,
+                      callbacks=cbs, validation_data=(X_val, y_val), shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history

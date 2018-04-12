@@ -90,10 +90,7 @@ from keras.layers import Dropout
 def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no temporal dimension"""
     print(inputs.shape)
-    y = Conv2D(2, 15, data_format="channels_first")(inputs)
-    y = Dropout(0.2)(y)
-    y = Conv2D(4, 11, data_format="channels_first")(y)
-    y = Dropout(0.2)(y)
+    y = Conv2D(4, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3))(inputs)
     y = Dense(n_out)(Flatten()(y))
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='SPAT_CNN')
