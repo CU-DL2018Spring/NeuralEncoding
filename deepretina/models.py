@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -86,13 +86,45 @@ def fc_rnn(inputs, n_out, *args):
 
     return Model(inputs, outputs, name="FC_RNN")
 
+from keras.layers import Dropout
 def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no temporal dimension"""
-    y = bn_layer(inputs, 2, 15, l2_reg)
-    y = bn_layer(y, 4, 11, l2_reg)
+    print(inputs.shape)
+    y = Conv2D(4, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3))(inputs)
     y = Dense(n_out)(Flatten()(y))
-    outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
+    outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='SPAT_CNN')
+
+from keras.layers import Dropout
+def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
+    """Standard CNN with no temporal dimension"""
+    print(inputs.shape)
+    y = Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3))(inputs)
+    y = Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3))(y)
+    y = Dense(n_out)(Flatten()(y))
+    outputs = Activation('softplus')(y)
+    return Model(inputs, outputs, name='COPY_CNN')
+
+from keras.layers import TimeDistributed
+from keras.layers import LSTM
+def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
+    """Convolution on each stimulus, then pass sequence to an LSTM"""
+    print("conv_to_lstm input shape = ", inputs.shape)
+    # Applies this conv layer to each stimulus in the sequence individually
+    y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    print("after first conv layer", y.shape)
+    #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
+    #print("after second conv layer", y.shape)
+    # Flatten feature maps to pass to LSTM 
+    y = TimeDistributed(Flatten())(y)
+    #print("after flatten layer", y.shape)
+    y = LSTM(50, activation='relu')(y)
+    print("after lstm layer", y.shape)
+    y = Dense(n_out, init='normal')(y)
+    print("after dense layer", y.shape)
+    outputs = Activation('softplus')(y)
+    print("after activation layer", outputs.shape)
+    return Model(inputs, outputs, name="CONV_TO_LSTM")
 
 # aliases
 ln = linear_nonlinear

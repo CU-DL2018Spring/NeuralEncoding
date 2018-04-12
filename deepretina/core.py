@@ -10,6 +10,9 @@ from deepretina import metrics, activations
 from deepretina.experiments import loadexpt, CELLS
 from keras.models import load_model
 from keras.optimizers import Adam
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
 
 __all__ = ['train', 'load']
 
@@ -40,16 +43,31 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
+    X_train, X_val, y_train, y_val = train_test_split(data.X, data.y, test_size=val_split)
+    
+
+    newX = None
+    # Add channels, and set window to temporal dimension for conv_to_lstm
+    if "c2l" in model_args:
+        print("c2l!")
+        input_shape = X_train.shape
+        print(input_shape)
+        # All three methods work, decide later if any of them are preferable
+        newX = X_train[:,:,np.newaxis,:,:]
+        print("newX = ", newX.shape)
+        #newX2 = np.expand_dims(data.X, axis=2)
+        #print("newX2 = ", newX2.shape)
+        #newX3 = data.X.reshape(input_shape[0], input_shape[1], 1, input_shape[2], input_shape[3])
+        #print("newX3 = ", newX3.shape)
 
     # flatten if
-    newX = None
-    if 'flatten' in model_args:
+    elif 'flatten' in model_args:
         print("flatten!")
         input_shape = data.X.shape
         print(input_shape)
         newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
     else:
-        newX = data.X
+        newX = X_train
     print(newX.shape)
     # build the model
     n_cells = data.y.shape[1]
@@ -58,11 +76,12 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     mdl = model(x, n_cells, *model_args)
 
     # compile the model
+    run_opts = tf.RunOptions(report_tensor_allocations_upon_oom = True)
     if 'mse' in model_args:
         print("mse!")
-        mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+        mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev], options=run_opts)
     else:
-        mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev])
+        mdl.compile(loss='poisson', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev], options=run_opts)
 
     # store results in this directory
     name = '_'.join([mdl.name, cellname, expt, stim, datetime.now().strftime('%Y.%m.%d-%H.%M')])
@@ -77,8 +96,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
            cb.EarlyStopping(monitor='val_loss', patience=20)]
 
     # train
-    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_split=val_split, shuffle=True)
+    history = mdl.fit(x=newX, y=y_train, batch_size=bz, epochs=nb_epochs,
+                      callbacks=cbs, validation_data=(X_val, y_val), shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history
