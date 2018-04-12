@@ -58,7 +58,7 @@ def fit_copy_cnn(expt, stim):
 
 @context
 def fit_conv_to_lstm(expt, stim):
-    train(conv_to_lstm, expt, stim, model_args=("c2l"), lr=1e-2, nb_epochs=250, val_split=0.05)
+    train(conv_to_lstm, expt, stim, model_args=("c2l"), lr=1e-3, nb_epochs=250, val_split=5e-4)
 
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
