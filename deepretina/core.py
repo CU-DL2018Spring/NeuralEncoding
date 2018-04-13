@@ -13,6 +13,7 @@ from keras.optimizers import Adam
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 
 __all__ = ['train', 'load']
 
@@ -43,9 +44,24 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
-    X_train, X_val, y_train, y_val = train_test_split(data.X, data.y, test_size=val_split)
-    
-
+    #X_train, X_val, y_train, y_val = train_test_split(data.X, data.y, test_size=val_split)
+    #data.X, data.y = shuffle(data.X, data.y)
+    # Merge X and y so shuffled simultaneously
+    """
+    test_X = np.arange(14).reshape(7,2)
+    test_y = np.arange(7)
+    print("X: ", test_X)
+    print("y: ", test_y)
+    """
+    rng_state = np.random.get_state()
+    np.random.shuffle(data.X)
+    np.random.set_state(rng_state)
+    np.random.shuffle(data.y)
+    """
+    print("shuf_X: ", test_X)
+    print("shuf_y: ", test_y)
+    sys.exit()
+    """
     newX = None
     # Add channels, and set window to temporal dimension for conv_to_lstm
     if "c2l" in model_args:
@@ -67,7 +83,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         print(input_shape)
         newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
     else:
-        newX = X_train
+        newX = data.X
     print(newX.shape)
     # build the model
     n_cells = data.y.shape[1]
@@ -96,8 +112,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
            cb.EarlyStopping(monitor='val_loss', patience=20)]
 
     # train
-    history = mdl.fit(x=newX, y=y_train, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_data=(X_val, y_val), shuffle=True)
+    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
+                      callbacks=cbs, validation_split=0.05, shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history
