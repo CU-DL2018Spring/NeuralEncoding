@@ -60,6 +60,10 @@ def fit_copy_cnn(expt, stim):
 def fit_conv_to_lstm(expt, stim):
     train(conv_to_lstm, expt, stim, model_args=("c2l"), lr=1e-3, nb_epochs=250, val_split=5e-4)
 
+@context
+def fit_tcn(expt, stim):
+    train(tcn, expt, stim, model_args=("tcn"), lr=1e-3, nb_epochs=250, val_split=0.05)
+
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -84,6 +88,8 @@ if __name__ == '__main__':
         fit_copy_cnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_TO_LSTM':
         fit_conv_to_lstm(args.expt, args.stim)
+    elif args.model.upper() == 'TCN':
+        fit_tcn(args.expt, args.stim)
     elif args.model.upper() == 'NIPS_CNN':
         fit_nips_cnn(args.expt, args.stim)
     elif args.model.split('_')[0].upper() == 'LN':

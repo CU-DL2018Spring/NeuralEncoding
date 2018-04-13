@@ -36,40 +36,31 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         cellname = f'cell-{cells[0]+1:02d}'
 
     # Get rid of temporal dimension
-    if 'spatial' in model_args:
-        print("spatial")
+    if 'spatial' in model_args or 'tcn' in model_args:
+        print("spatial/tcn")
         window = 1
     else:
         window = 40
 
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
-    #X_train, X_val, y_train, y_val = train_test_split(data.X, data.y, test_size=val_split)
-    #data.X, data.y = shuffle(data.X, data.y)
-    # Merge X and y so shuffled simultaneously
-    """
-    test_X = np.arange(14).reshape(7,2)
-    test_y = np.arange(7)
-    print("X: ", test_X)
-    print("y: ", test_y)
-    """
+    # Shuffle data
+   
+    # Fix random seed
+    np.random.seed(seed=9)
     rng_state = np.random.get_state()
     np.random.shuffle(data.X)
     np.random.set_state(rng_state)
     np.random.shuffle(data.y)
-    """
-    print("shuf_X: ", test_X)
-    print("shuf_y: ", test_y)
-    sys.exit()
-    """
+    
     newX = None
     # Add channels, and set window to temporal dimension for conv_to_lstm
     if "c2l" in model_args:
         print("c2l!")
-        input_shape = X_train.shape
+        input_shape = data.X.shape
         print(input_shape)
         # All three methods work, decide later if any of them are preferable
-        newX = X_train[:,:,np.newaxis,:,:]
+        newX = data.X[:,:,np.newaxis,:,:]
         print("newX = ", newX.shape)
         #newX2 = np.expand_dims(data.X, axis=2)
         #print("newX2 = ", newX2.shape)
@@ -92,7 +83,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     mdl = model(x, n_cells, *model_args)
 
     # compile the model
-    run_opts = tf.RunOptions(report_tensor_allocations_upon_oom = True)
+    run_opts = tf.RunOptions(report_tensor_allocations_upon_oom=True)
     if 'mse' in model_args:
         print("mse!")
         mdl.compile(loss='mean_squared_error', optimizer=Adam(lr), metrics=[metrics.cc, metrics.rmse, metrics.fev], options=run_opts)
@@ -113,7 +104,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # train
     history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_split=0.05, shuffle=True)
+                      callbacks=cbs, validation_split=val_split, shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history
