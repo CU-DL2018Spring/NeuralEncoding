@@ -1,5 +1,8 @@
 # Folders
 results/
+test_stimuli/
+test_stimuli.zip
+15_10_07_retina_dataset/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
