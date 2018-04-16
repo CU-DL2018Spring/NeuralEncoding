@@ -47,12 +47,14 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     # Shuffle data
    
     # Fix random seed
+    """
     np.random.seed(seed=9)
     rng_state = np.random.get_state()
     np.random.shuffle(data.X)
     np.random.set_state(rng_state)
     np.random.shuffle(data.y)
-    
+    """    
+
     newX = None
     # Add channels, and set window to temporal dimension for conv_to_lstm
     if "c2l" in model_args:
