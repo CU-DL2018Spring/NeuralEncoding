@@ -57,8 +57,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     newX = None
     # Add channels, and set window to temporal dimension for conv_to_lstm
-    if "c2l" in model_args:
-        print("c2l!")
+    if 'c2l' in model_args or 'cl' in model_args:
+        print("c2l!/cl!")
         input_shape = data.X.shape
         print(input_shape)
         # All three methods work, decide later if any of them are preferable
@@ -102,7 +102,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
            cb.TensorBoard(log_dir=base, histogram_freq=1, batch_size=5000, write_grads=True),
            cb.ReduceLROnPlateau(min_lr=0, factor=0.2, patience=10),
            cb.CSVLogger(os.path.join(base, 'training.csv')),
-           cb.EarlyStopping(monitor='val_loss', patience=20)]
+           cb.EarlyStopping(monitor='val_loss', patience=20),
+           cb.LearningRateScheduler((lambda epoch, lr : lr * 0.97**epoch), verbose=1)]
 
     # train
     history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,

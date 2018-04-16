@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -101,14 +101,15 @@ def fc_lstm(inputs, n_out, *args):
 
 from keras.layers import ConvLSTM2D
 def conv_lstm(inputs, n_out, *args):
-    """convolutional LSTM (Shi et al.)"""
+    """Convolutional LSTM (Shi et al.)"""
     print("input shape = ", inputs.shape)
-    y = LSTM(50, activation='relu', return_sequences=True)(inputs)
-    y = LSTM(50, activation='relu')(y)
+    y = ConvLSTM2D(8, 15, data_format="channels_first", activation='relu', return_sequences=True)(inputs)
+    y = ConvLSTM2D(8, 11, data_format="channels_first", activation='relu')(y)
+    y = Flatten()(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
-    return Model(inputs, outputs, name="FC_LSTM")
+    return Model(inputs, outputs, name="CONV_LSTM")
 
 
 from keras.layers import Dropout

@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm
 
 
 def context(func):
@@ -54,6 +54,10 @@ def fit_fc_lstm(expt, stim):
     train(fc_lstm, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 @context
+def fit_conv_lstm(expt, stim):
+    train(conv_lstm, expt, stim, model_args=("cl"), lr=1e-3, nb_epochs=250, val_split=0.05)
+
+@context
 def fit_spatial_cnn(expt, stim):
     train(spatial_cnn, expt, stim, model_args=("spatial"), lr=1e-2, nb_epochs=250, val_split=0.05)
 
@@ -95,6 +99,8 @@ if __name__ == '__main__':
         fit_copy_cnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_TO_LSTM':
         fit_conv_to_lstm(args.expt, args.stim)
+    elif args.model.upper() == 'CONV_LSTM':
+        fit_conv_lstm(args.expt, args.stim)
     elif args.model.upper() == 'TCN':
         fit_tcn(args.expt, args.stim)
     elif args.model.upper() == 'NIPS_CNN':
