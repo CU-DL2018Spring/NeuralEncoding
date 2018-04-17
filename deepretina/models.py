@@ -87,9 +87,9 @@ def fc_rnn(inputs, n_out, *args):
     return Model(inputs, outputs, name="FC_RNN")
 
 def fc_rnn_large(inputs, n_out, *args):
-	"""Fully Connected RNN, scaled with input size increase (Batty et al.)"""
-	print("input shape = ", inputs.shape)
-	y = SimpleRNN(80, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
+    """Fully Connected RNN, scaled with input size increase (Batty et al.)"""
+    print("input shape = ", inputs.shape)
+    y = SimpleRNN(80, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
     y = SimpleRNN(80, activation='relu', kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
@@ -162,7 +162,7 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     return Model(inputs, outputs, name="CONV_TO_LSTM")
 
 from keras.layers import Concatenate
-def tcn_block(inputs, n_outputs, kernel_size=2, stride, dilation, padding, dropout=0.2, l2_reg = 1e-3):
+def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropout=0.2, l2_reg = 1e-3):
     """TCN by Bai et al. Called following a conv-net """
     conv = Conv1D(kernel_size=kernel_size, stride=stride, strides=strides, 
                kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
