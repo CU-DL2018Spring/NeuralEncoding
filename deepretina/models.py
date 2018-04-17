@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -79,13 +79,22 @@ from keras.layers import RNN
 def fc_rnn(inputs, n_out, *args):
     """Fully Connected RNN (Batty et al.)"""
     print("input shape = ", inputs.shape)
-    y = SimpleRNN(50, activation='relu', return_sequences=True)(inputs)
-    y = SimpleRNN(50, activation='relu')(y)
+    y = SimpleRNN(50, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
+    y = SimpleRNN(50, activation='relu', kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
     return Model(inputs, outputs, name="FC_RNN")
 
+def fc_rnn_large(inputs, n_out, *args):
+	"""Fully Connected RNN, scaled with input size increase (Batty et al.)"""
+	print("input shape = ", inputs.shape)
+	y = SimpleRNN(80, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
+    y = SimpleRNN(80, activation='relu', kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
+    y = Dense(n_out, init='normal')(y)
+    outputs = Activation('softplus')(y)
+
+    return Model(inputs, outputs, name="FC_RNN_LARGE")
 
 from keras.layers import LSTM
 def fc_lstm(inputs, n_out, *args):
