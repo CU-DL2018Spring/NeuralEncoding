@@ -75,7 +75,11 @@ def fit_copy_cnn(expt, stim):
 
 @context
 def fit_conv_to_lstm(expt, stim):
-    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-3, nb_epochs=250, val_split=5e-4, bz=1024)
+    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
+
+@context
+def fit_conv_to_rnn(expt, stim):
+    train(conv_to_rnn, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):
@@ -111,6 +115,8 @@ if __name__ == '__main__':
         fit_copy_cnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_TO_LSTM':
         fit_conv_to_lstm(args.expt, args.stim)
+    elif args.model.upper() == 'CONV_TO_RNN':
+        fit_conv_to_rnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_LSTM':
         fit_conv_lstm(args.expt, args.stim)
     elif args.model.upper() == 'TCN':
