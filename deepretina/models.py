@@ -3,7 +3,7 @@ Construct Keras models
 """
 from __future__ import absolute_import, division, print_function
 from keras.models import Model
-from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D
+from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D, Add
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.noise import GaussianNoise
@@ -209,14 +209,24 @@ def tcn(inputs, n_out, *args):
                   kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(inputs)
     conv = Activation('relu')(conv)
     conv = Dropout(0.3)(conv)
-    print("after first conv layer", conv.shape)
+    print("Conv 1st layer", conv.shape)
     conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same',
                   kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(conv)
     conv = Activation('relu')(conv)
     conv = Dropout(0.3)(conv)
-    print("after second conv layer", conv.shape)
-    outputs = Dense(n_out, init='normal')(Flatten()(conv))
-    print("output layer", outputs.shape)
+    print("Conv 2nd layer", conv.shape)
+    conv = Dense(n_out, init='normal')(Flatten()(conv))
+    print("Conv out layer", conv.shape)
+
+    fcn = Conv1D(n_out,kernel_size=1,padding='same', kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(inputs)
+    print("FCN 1st layer", fcn.shape)
+    fcn = Dense(n_out, init='normal')(Flatten()(fcn))
+    print("FCN out layer", fcn.shape)
+
+    outputs = Add()([conv, fcn])
+    #outputs = Activation('relu')(fcn + conv)
+    print("Output layer ", outputs.shape)
+
     return Model(inputs, outputs, name="TCN")
 
 # aliases
