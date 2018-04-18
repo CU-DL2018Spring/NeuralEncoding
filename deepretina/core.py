@@ -84,7 +84,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     mdl = model(x, n_cells, *model_args)
 
     if '2_GPU' in model_args:
-        mdl = multi_gpu_model(model, gpus=2)
+        print("2 GPU")
+        mdl = multi_gpu_model(mdl, gpus=2)
 
     # compile the model
     run_opts = tf.RunOptions(report_tensor_allocations_upon_oom=True)
@@ -100,7 +101,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     os.mkdir(base)
 
     # define model callbacks
-    cbs = [cb.ModelCheckpoint(os.path.join(base, 'weights-{epoch:03d}-{val_loss:.3f}.h5')),
+    cbs = [#cb.ModelCheckpoint(os.path.join(base, 'weights-{epoch:03d}-{val_loss:.3f}.h5')),
            cb.TensorBoard(log_dir=base, histogram_freq=1, batch_size=bz, write_grads=True),
            cb.ReduceLROnPlateau(min_lr=0, factor=0.2, patience=10),
            cb.CSVLogger(os.path.join(base, 'training.csv')),

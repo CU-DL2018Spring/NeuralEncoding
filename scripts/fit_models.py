@@ -10,7 +10,8 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large
+#from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large
+from deepretina.models import *
 
 
 def context(func):
@@ -27,6 +28,10 @@ def context(func):
 @context
 def fit_bn_cnn(expt, stim):
     train(bn_cnn, expt, stim, lr=1e-2, nb_epochs=250, val_split=0.05)
+
+@context
+def fit_bn_spat_cnn(expt, stim):
+    train(bn_spat_cnn, expt, stim, model_args=("spatial"), lr=1e-2, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_nips_cnn(expt, stim):
@@ -58,7 +63,7 @@ def fit_fc_lstm(expt, stim):
 
 @context
 def fit_conv_lstm(expt, stim):
-    train(conv_lstm, expt, stim, model_args=("Add_dim", "2_GPU"), lr=1e-3, bz=512, nb_epochs=250, val_split=0.05)
+    train(conv_lstm, expt, stim, model_args=("add_dim", "2_GPU"), lr=1e-3, bz=128, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_spatial_cnn(expt, stim):
@@ -70,7 +75,11 @@ def fit_copy_cnn(expt, stim):
 
 @context
 def fit_conv_to_lstm(expt, stim):
-    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-3, nb_epochs=250, val_split=5e-4)
+    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
+
+@context
+def fit_conv_to_rnn(expt, stim):
+    train(conv_to_rnn, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):
@@ -92,6 +101,8 @@ if __name__ == '__main__':
     if args.model.upper() == 'BN_CNN':
         tp.banner(f'Training BN_CNN, expt {args.expt}, {args.stim}')
         fit_bn_cnn(args.expt, args.stim)
+    elif args.model.upper() == 'BN_SPAT_CNN':
+        fit_bn_spat_cnn(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN':
         fit_fc_rnn(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN_LARGE':
@@ -104,6 +115,8 @@ if __name__ == '__main__':
         fit_copy_cnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_TO_LSTM':
         fit_conv_to_lstm(args.expt, args.stim)
+    elif args.model.upper() == 'CONV_TO_RNN':
+        fit_conv_to_rnn(args.expt, args.stim)
     elif args.model.upper() == 'CONV_LSTM':
         fit_conv_lstm(args.expt, args.stim)
     elif args.model.upper() == 'TCN':

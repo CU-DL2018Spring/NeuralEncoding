@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -29,6 +29,13 @@ def bn_cnn(inputs, n_out, l2_reg=0.01):
     outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
     return Model(inputs, outputs, name='BN-CNN')
 
+def bn_spat_cnn(inputs, n_out, *args, l2_reg=0.01):
+    """Batchnorm CNN model"""
+    y = bn_layer(inputs, 8, 15, l2_reg)
+    y = bn_layer(y, 8, 11, l2_reg)
+    y = Dense(n_out, use_bias=False)(Flatten()(y))
+    outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
+    return Model(inputs, outputs, name='BN-SPAT-CNN')
 
 def linear_nonlinear(inputs, n_out, *args, activation='softplus', l2_reg=0.01):
     """A linear-nonlinear model"""
@@ -136,7 +143,7 @@ def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
     print(inputs.shape)
     y = Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3))(inputs)
     y = Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3))(y)
-    y = Dense(n_out)(Flatten()(y))
+    y = Dense(n_out, use_bias=False)(Flatten()(y))
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='COPY_CNN')
 
@@ -152,7 +159,7 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
-    #print("after flatten layer", y.shape)
+    print("after flatten layer", y.shape)
     y = LSTM(50, activation='relu')(y)
     print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
@@ -160,6 +167,25 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     outputs = Activation('softplus')(y)
     print("after activation layer", outputs.shape)
     return Model(inputs, outputs, name="CONV_TO_LSTM")
+
+def conv_to_rnn(inputs, n_out, *args, l2_reg=0.01):
+    """Convolution on each stimulus, then pass sequence to an RNN"""
+    print("conv_to_rnn input shape = ", inputs.shape)
+    # Applies this conv layer to each stimulus in the sequence individually
+    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    print("after first conv layer", y.shape)
+    y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
+    #print("after second conv layer", y.shape)
+    # Flatten feature maps to pass to LSTM 
+    y = TimeDistributed(Flatten())(y)
+    print("after flatten layer", y.shape)
+    y = SimpleRNN(50, activation='relu')(y)
+    print("after lstm layer", y.shape)
+    y = Dense(n_out, init='normal')(y)
+    print("after dense layer", y.shape)
+    outputs = Activation('softplus')(y)
+    print("after activation layer", outputs.shape)
+    return Model(inputs, outputs, name="CONV_TO_RNN")
 
 from keras.layers import Concatenate
 def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropout=0.2, l2_reg = 1e-3):
