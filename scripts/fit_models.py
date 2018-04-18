@@ -58,7 +58,7 @@ def fit_fc_lstm(expt, stim):
 
 @context
 def fit_conv_lstm(expt, stim):
-    train(conv_lstm, expt, stim, model_args=("cl"), lr=1e-3, bz=128, nb_epochs=250, val_split=0.05)
+    train(conv_lstm, expt, stim, model_args=("Add_dim", "2_GPU"), lr=1e-3, bz=512, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_spatial_cnn(expt, stim):
@@ -70,7 +70,7 @@ def fit_copy_cnn(expt, stim):
 
 @context
 def fit_conv_to_lstm(expt, stim):
-    train(conv_to_lstm, expt, stim, model_args=("c2l"), lr=1e-3, nb_epochs=250, val_split=5e-4)
+    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-3, nb_epochs=250, val_split=5e-4)
 
 @context
 def fit_tcn(expt, stim):
