@@ -58,7 +58,7 @@ def fit_fc_lstm(expt, stim):
 
 @context
 def fit_conv_lstm(expt, stim):
-    train(conv_lstm, expt, stim, model_args=("Add_dim", "2_GPU"), lr=1e-3, bz=512, nb_epochs=250, val_split=0.05)
+    train(conv_lstm, expt, stim, model_args=("add_dim", "2_GPU"), lr=1e-3, bz=128, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_spatial_cnn(expt, stim):
