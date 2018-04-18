@@ -59,7 +59,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         weight_path = '../results/SPAT_CNN__15-10-07_naturalscene_2018.04.13-05.16/weights-008--0.682.h5'
         cnn_mdl = load(weight_path)
         X_new = cnn_mdl.predict(data.X)
-        print X_new.shape
+        print(X_new.shape)
         return
 
     # Add channels, and set window to temporal dimension for conv_to_lstm
