@@ -10,6 +10,7 @@ from deepretina import metrics, activations
 from deepretina.experiments import loadexpt, CELLS
 from keras.models import load_model
 from keras.optimizers import Adam
+from keras.utils import multi_gpu_model
 import numpy as np
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
@@ -44,16 +45,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # load experimental data
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
-    # Shuffle data
-   
-    # Fix random seed
-    """
-    np.random.seed(seed=9)
-    rng_state = np.random.get_state()
-    np.random.shuffle(data.X)
-    np.random.set_state(rng_state)
-    np.random.shuffle(data.y)
-    """
+
     newX = None
     if 'tcn' in model_args:
         weight_path = '../results/SPAT_CNN__15-10-07_naturalscene_2018.04.13-05.16/weights-008--0.682.h5'
@@ -62,9 +54,9 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         print (X_new.shape)
         return
 
-    # Add channels, and set window to temporal dimension for conv_to_lstm
-    elif 'c2l' in model_args or 'cl' in model_args:
-        print("c2l!/cl!")
+    # Add channels, and set window to temporal dimension for conv_lstm
+    elif 'add_dim' model_args:
+        print("add_dim")
         input_shape = data.X.shape
         print(input_shape)
         # All three methods work, decide later if any of them are preferable
@@ -89,6 +81,9 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     x = Input(shape=newX.shape[1:])
     print("newX.shape[1:] = ", newX.shape[1:])
     mdl = model(x, n_cells, *model_args)
+
+    if '2_GPU' in model_args:
+        mdl = multi_gpu_model(model, gpus=2)
 
     # compile the model
     run_opts = tf.RunOptions(report_tensor_allocations_upon_oom=True)
