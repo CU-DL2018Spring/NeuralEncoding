@@ -47,15 +47,16 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     data = loadexpt(expt, cells, stim, 'train', window, 6000, cutout_width=width)
 
     newX = None
-    if 'tcn' in model_args:
-        weight_path = '../results/SPAT_CNN__15-10-07_naturalscene_2018.04.13-05.16/weights-008--0.682.h5'
-        cnn_mdl = load(weight_path)
-        X_new = cnn_mdl.predict(data.X)
-        print (X_new.shape)
-        return
+    # In case we want to use predicted firing rate as training data
+    #if 'use_predict' in model_args:
+    #    weight_path = '../results/SPAT_CNN__15-10-07_naturalscene_2018.04.13-05.16/weights-008--0.682.h5'
+    #    cnn_mdl = load(weight_path)
+    #    X_new = cnn_mdl.predict(data.X)
+    #    print (X_new.shape)
+    #    return
 
     # Add channels, and set window to temporal dimension for conv_lstm
-    elif 'add_dim' model_args:
+    if 'add_dim' model_args:
         print("add_dim")
         input_shape = data.X.shape
         print(input_shape)

@@ -164,7 +164,7 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
 from keras.layers import Concatenate
 def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropout=0.2, l2_reg = 1e-3):
     """TCN by Bai et al. Called following a conv-net """
-    conv = Conv1D(kernel_size=kernel_size, stride=stride, strides=strides, 
+    conv = Conv1D(kernel_size=kernel_size, stride=stride,
                kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
     conv = Activation('relu')(conv)
     conv = Dropout(dropout)(conv)
@@ -178,11 +178,17 @@ def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropo
     return Concatenate([conv, fcn], axis=1)
 
 def tcn(inputs, n_out):
-    outputs = inputs
-    num_channels = [] #TODO look up main function
-    for i in range(len(num_channels)):
-        dilation_size = 2 ** i
-        outputs = tcn_block(outputs, num_channels[i], kernel_size, stride=1, dilation=dilation_size)
+    print("TCN input shape = ", inputs.shape)
+    conv = Conv1D(filters = 2, kernel_size = 3, stride = 1, dilation = 1, padding = 'same',
+                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
+    conv = Activation('relu')(conv)
+    conv = Dropout(dropout)(conv)
+    print("after first conv layer", conv.shape)
+    conv = Conv1D(filters = 1, kernel_size = 2, stride = 2, dilation = 2, padding = 'same',
+                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(conv)
+    conv = Activation('relu')(conv)
+    outputs = Dropout(dropout)(conv)
+    print("after second conv layer", outputs.shape)
     return Model(inputs, outputs, name="TCN")
 
 # aliases

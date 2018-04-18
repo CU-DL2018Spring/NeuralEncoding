@@ -74,7 +74,7 @@ def fit_conv_to_lstm(expt, stim):
 
 @context
 def fit_tcn(expt, stim):
-    train(tcn, expt, stim, model_args=("tcn"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(tcn, expt, stim, model_args=("tcn", "flatten"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
