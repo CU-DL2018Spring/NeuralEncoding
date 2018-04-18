@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -203,18 +203,20 @@ def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropo
     
     return Concatenate([conv, fcn], axis=1)
 
-def tcn(inputs, n_out):
+def tcn(inputs, n_out, *args):
     print("TCN input shape = ", inputs.shape)
-    conv = Conv1D(filters = 2, kernel_size = 3, stride = 1, dilation = 1, padding = 'same',
-                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
+    conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same',
+                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(inputs)
     conv = Activation('relu')(conv)
-    conv = Dropout(dropout)(conv)
+    conv = Dropout(0.3)(conv)
     print("after first conv layer", conv.shape)
-    conv = Conv1D(filters = 1, kernel_size = 2, stride = 2, dilation = 2, padding = 'same',
-                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(conv)
+    conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same',
+                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(conv)
     conv = Activation('relu')(conv)
-    outputs = Dropout(dropout)(conv)
-    print("after second conv layer", outputs.shape)
+    conv = Dropout(0.3)(conv)
+    print("after second conv layer", conv.shape)
+    outputs = Dense(n_out, init='normal')(Flatten()(conv))
+    print("output layer", outputs.shape)
     return Model(inputs, outputs, name="TCN")
 
 # aliases

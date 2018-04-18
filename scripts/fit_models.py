@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-#from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large
 from deepretina.models import *
 
 
@@ -83,7 +83,7 @@ def fit_conv_to_rnn(expt, stim):
 
 @context
 def fit_tcn(expt, stim):
-    train(tcn, expt, stim, model_args=("tcn", "flatten"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(tcn, expt, stim, model_args=("flatten"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

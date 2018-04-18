@@ -56,7 +56,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     #    return
 
     # Add channels, and set window to temporal dimension for conv_lstm
-    if 'add_dim' model_args:
+    if 'add_dim' in model_args:
         print("add_dim")
         input_shape = data.X.shape
         print(input_shape)
