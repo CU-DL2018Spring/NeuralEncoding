@@ -9,6 +9,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
+from keras.initializers import RandomNormal
 
 __all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn']
 
@@ -206,19 +207,23 @@ def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropo
 def tcn(inputs, n_out, *args):
     print("TCN input shape = ", inputs.shape)
     conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same',
-                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(inputs)
+                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
+                  kernel_initializer=RandomNormal(stddev=0.01))(inputs)
     conv = Activation('relu')(conv)
     conv = Dropout(0.3)(conv)
     print("Conv 1st layer", conv.shape)
     conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same',
-                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(conv)
+                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
+                  kernel_initializer=RandomNormal(stddev=0.01))(conv)
     conv = Activation('relu')(conv)
     conv = Dropout(0.3)(conv)
     print("Conv 2nd layer", conv.shape)
     conv = Dense(n_out, init='normal')(Flatten()(conv))
     print("Conv out layer", conv.shape)
 
-    fcn = Conv1D(n_out,kernel_size=1,padding='same', kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3))(inputs)
+    fcn = Conv1D(n_out,kernel_size=1,padding='same',
+                 kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
+                 kernel_initializer=RandomNormal(stddev=0.01))(inputs)
     print("FCN 1st layer", fcn.shape)
     fcn = Dense(n_out, init='normal')(Flatten()(fcn))
     print("FCN out layer", fcn.shape)
