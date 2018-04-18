@@ -53,11 +53,17 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     np.random.shuffle(data.X)
     np.random.set_state(rng_state)
     np.random.shuffle(data.y)
-    """    
-
+    """
     newX = None
+    if 'tcn' in model_args:
+        weight_path = '../results/SPAT_CNN__15-10-07_naturalscene_2018.04.13-05.16/weights-008--0.682.h5'
+        cnn_mdl = load(weight_path)
+        X_new = cnn_mdl.predict(data.X)
+        print X_new.shape
+        return
+
     # Add channels, and set window to temporal dimension for conv_to_lstm
-    if 'c2l' in model_args or 'cl' in model_args:
+    elif 'c2l' in model_args or 'cl' in model_args:
         print("c2l!/cl!")
         input_shape = data.X.shape
         print(input_shape)
@@ -99,7 +105,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
 
     # define model callbacks
     cbs = [cb.ModelCheckpoint(os.path.join(base, 'weights-{epoch:03d}-{val_loss:.3f}.h5')),
-           cb.TensorBoard(log_dir=base, histogram_freq=1, batch_size=5000, write_grads=True),
+           cb.TensorBoard(log_dir=base, histogram_freq=1, batch_size=bz, write_grads=True),
            cb.ReduceLROnPlateau(min_lr=0, factor=0.2, patience=10),
            cb.CSVLogger(os.path.join(base, 'training.csv')),
            cb.EarlyStopping(monitor='val_loss', patience=20),

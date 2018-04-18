@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm']
+__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -112,8 +112,8 @@ from keras.layers import ConvLSTM2D
 def conv_lstm(inputs, n_out, *args):
     """Convolutional LSTM (Shi et al.)"""
     print("input shape = ", inputs.shape)
-    y = ConvLSTM2D(8, 15, data_format="channels_first", activation='relu', return_sequences=True)(inputs)
-    y = ConvLSTM2D(8, 11, data_format="channels_first", activation='relu')(y)
+    y = ConvLSTM2D(4, 15, data_format="channels_first", activation='relu', return_sequences=False)(inputs)
+    #y = ConvLSTM2D(8, 11, data_format="channels_first", activation='relu')(y)
     y = Flatten()(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
@@ -168,7 +168,7 @@ def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropo
                kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
     conv = Activation('relu')(conv)
     conv = Dropout(dropout)(conv)
-    conv = Conv1D(inputs, kernel_size=kernel_size, stride=stride, strides=strides, 
+    conv = Conv1D(n_outputs, kernel_size=kernel_size, stride=stride, strides=strides, 
                kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(conv)
     conv = Activation('relu')(conv)
     conv = Dropout(dropout)(conv) #TODO 1x1 convolution is optional??
