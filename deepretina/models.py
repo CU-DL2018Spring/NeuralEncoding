@@ -159,7 +159,7 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
-    #print("after flatten layer", y.shape)
+    print("after flatten layer", y.shape)
     y = LSTM(50, activation='relu')(y)
     print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
