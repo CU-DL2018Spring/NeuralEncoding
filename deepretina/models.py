@@ -10,7 +10,7 @@ from keras.layers.noise import GaussianNoise
 from keras.regularizers import l1, l2
 from deepretina import activations
 
-__all__ = ['bn_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'fc_lstm', 'conv_lstm', 'fc_rnn_large']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -29,6 +29,13 @@ def bn_cnn(inputs, n_out, l2_reg=0.01):
     outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
     return Model(inputs, outputs, name='BN-CNN')
 
+def bn_spat_cnn(inputs, n_out, *args, l2_reg=0.01):
+    """Batchnorm CNN model"""
+    y = bn_layer(inputs, 8, 15, l2_reg)
+    y = bn_layer(y, 8, 11, l2_reg)
+    y = Dense(n_out, use_bias=False)(Flatten()(y))
+    outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
+    return Model(inputs, outputs, name='BN-SPAT-CNN')
 
 def linear_nonlinear(inputs, n_out, *args, activation='softplus', l2_reg=0.01):
     """A linear-nonlinear model"""
