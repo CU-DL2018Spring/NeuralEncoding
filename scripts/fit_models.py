@@ -75,11 +75,11 @@ def fit_copy_cnn(expt, stim):
 
 @context
 def fit_conv_to_lstm(expt, stim):
-    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
+    train(conv_to_lstm, expt, stim, model_args=("add_dim"), lr=0.1, nb_epochs=250, val_split=0.05, bz=2048)
 
 @context
 def fit_conv_to_rnn(expt, stim):
-    train(conv_to_rnn, expt, stim, model_args=("add_dim"), lr=1e-2, nb_epochs=250, val_split=0.05, bz=1024)
+    train(conv_to_rnn, expt, stim, model_args=("add_dim","2_GPU","mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):

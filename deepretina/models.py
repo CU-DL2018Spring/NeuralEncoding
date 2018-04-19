@@ -180,12 +180,12 @@ def conv_to_rnn(inputs, n_out, *args, l2_reg=0.01):
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
-    y = SimpleRNN(50, activation='relu')(y)
-    print("after lstm layer", y.shape)
+    y = SimpleRNN(50, activation='relu', kernel_initializer='random_normal', recurrent_initializer='random_normal')(y)
+    #print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
-    print("after dense layer", y.shape)
+    #print("after dense layer", y.shape)
     outputs = Activation('softplus')(y)
-    print("after activation layer", outputs.shape)
+    #print("after activation layer", outputs.shape)
     return Model(inputs, outputs, name="CONV_TO_RNN")
 
 def tcn_block(inputs, n_out, dilation, padding = 'same', kernel_size=2, dropout=0.3, l2_reg = 1e-3, flatten = False):
