@@ -265,5 +265,31 @@ def tcn(inputs, n_out, *args):
 
     return Model(inputs, outputs, name="TCN")
 
+
+def cn_tcn(inputs, n_out, *args):
+    """TCN by Bai et al. Called following a conv-net """
+    
+    # Perform convolution on each stimulus, then pass flattened feature maps as sequence to TCN
+    # Applies this conv layer to each stimulus in the sequence individually
+    y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    print("after first conv layer", y.shape)
+    #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
+    #print("after second conv layer", y.shape)
+    # Flatten feature maps to pass to TCN
+    y = TimeDistributed(Flatten())(y)
+    print("after flatten layer", y.shape)
+    print("Creat TCN 1")
+    y = tcn_block(y, 10, dilation = 1, padding='same', kernel_size=3)
+    print("-------------------------------------------------------")
+    print("Creat TCN 2")
+    y = tcn_block(y, 5, dilation = 2, padding='same', kernel_size=3)
+    print("Creat TCN 3")
+    print("-------------------------------------------------------")
+    outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
+
+    return Model(inputs, outputs, name="TCN")
+
+
+
 # aliases
 ln = linear_nonlinear
