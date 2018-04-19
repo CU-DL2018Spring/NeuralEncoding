@@ -106,7 +106,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
            cb.ReduceLROnPlateau(min_lr=0, factor=0.2, patience=10),
            cb.CSVLogger(os.path.join(base, 'training.csv')),
            cb.EarlyStopping(monitor='val_loss', patience=20),
-           cb.LearningRateScheduler((lambda epoch, lr : lr * 0.97**epoch), verbose=1)]
+           #cb.LearningRateScheduler((lambda epoch, lr : lr * 0.97**epoch), verbose=1)
+          ]
 
     # train
     history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,

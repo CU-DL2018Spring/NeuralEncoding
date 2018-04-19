@@ -188,23 +188,45 @@ def conv_to_rnn(inputs, n_out, *args, l2_reg=0.01):
     print("after activation layer", outputs.shape)
     return Model(inputs, outputs, name="CONV_TO_RNN")
 
-from keras.layers import Concatenate
-def tcn_block(inputs, n_outputs, stride, dilation, padding, kernel_size=2, dropout=0.2, l2_reg = 1e-3):
-    """TCN by Bai et al. Called following a conv-net """
-    conv = Conv1D(kernel_size=kernel_size, stride=stride,
-               kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(inputs)
+def tcn_block(inputs, n_out, dilation, padding = 'same', kernel_size=2, dropout=0.3, l2_reg = 1e-3, flatten = False):
+    """ Basic building block of TCN (Bai et al.)"""
+    print("TCN input shape = ", inputs.shape)
+    conv = Conv1D(filters = n_out, kernel_size = kernel_size, strides = 1, dilation_rate = dilation, padding = padding,
+                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
+                  kernel_initializer=RandomNormal(stddev=0.01))(inputs)
+    # Dilated CNN
     conv = Activation('relu')(conv)
     conv = Dropout(dropout)(conv)
-    conv = Conv1D(n_outputs, kernel_size=kernel_size, stride=stride, strides=strides, 
-               kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg))(conv)
+    print("Conv 1st layer", conv.shape)
+    conv = Conv1D(filters = n_out, kernel_size = kernel_size, strides = 1, dilation_rate = dilation, padding = padding,
+                  kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
+                  kernel_initializer=RandomNormal(stddev=0.01))(conv)
     conv = Activation('relu')(conv)
-    conv = Dropout(dropout)(conv) #TODO 1x1 convolution is optional??
+    conv = Dropout(dropout)(conv)
+    print("Conv 2nd layer", conv.shape)
+    if flatten:
+        conv = Dense(n_out, init='normal')(Flatten()(conv))
+    print("Conv out layer", conv.shape)
 
-    fcn = Conv1d(n_outputs, kernel_size = 1)(inputs)
+    fcn = Conv1D(n_out,kernel_size=1,padding='same',
+                 kernel_regularizer=l2(l2_reg), bias_regularizer=l2(l2_reg),
+                 kernel_initializer=RandomNormal(stddev=0.01))(inputs)
+
+    # Parallel Fully-Convolutional Network
+    if flatten:
+        print("FCN 1st layer", fcn.shape)
+        fcn = Dense(n_out, init='normal')(Flatten()(fcn))
+        print("FCN out layer", fcn.shape)
     
-    return Concatenate([conv, fcn], axis=1)
+    # Merge ConvNet and FCN
+    outputs = Add()([conv, fcn])
+    outputs = Activation('relu')(outputs)
+    print("Output layer ", outputs.shape)
+    return outputs
 
 def tcn(inputs, n_out, *args):
+    """TCN by Bai et al. Called following a conv-net """
+    """
     print("TCN input shape = ", inputs.shape)
     conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same',
                   kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
@@ -231,6 +253,15 @@ def tcn(inputs, n_out, *args):
     outputs = Add()([conv, fcn])
     #outputs = Activation('relu')(fcn + conv)
     print("Output layer ", outputs.shape)
+    """
+    print("Creat TCN 1")
+    y = tcn_block(inputs, 10, dilation = 1, padding='same', kernel_size=3)
+    print("-------------------------------------------------------")
+    print("Creat TCN 2")
+    y = tcn_block(y, 5, dilation = 2, padding='same', kernel_size=3)
+    print("Creat TCN 3")
+    print("-------------------------------------------------------")
+    outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
 
     return Model(inputs, outputs, name="TCN")
 
