@@ -20,6 +20,7 @@ def correlation_coefficient(obs_rate, est_rate):
     x_std = K.std(obs_rate, axis=0, keepdims=True)
     y_mu = est_rate - K.mean(est_rate, axis=0, keepdims=True)
     y_std = K.std(est_rate, axis=0, keepdims=True)
+    #y_std = K.print_tensor(y_std)
     return K.mean(x_mu * y_mu, axis=0, keepdims=True) / (x_std * y_std)
 
 
