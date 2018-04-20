@@ -179,16 +179,19 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     return Model(inputs, outputs, name="CONV_TO_LSTM")
 
 def conv_to_rnn(inputs, n_out, *args, l2_reg=0.01):
+    sigma = 0.05
     """Convolution on each stimulus, then pass sequence to an RNN"""
-    print("conv_to_rnn input shape = ", inputs.shape)
+    #print("conv_to_rnn input shape = ", inputs.shape)
     # Applies this conv layer to each stimulus in the sequence individually
-    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
-    print("after first conv layer", y.shape)
-    y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
+    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
+    #print("after first conv layer", y.shape)
+    y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3)))(y)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
     #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
-    print("after flatten layer", y.shape)
+    #print("after flatten layer", y.shape)
     y = SimpleRNN(50, activation='relu', kernel_initializer='random_normal', recurrent_initializer='random_normal')(y)
     #print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
