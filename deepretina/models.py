@@ -141,6 +141,7 @@ def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
 from keras.layers import Dropout
 def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no batch norm"""
+    sigma=0.05
     print(inputs.shape)
     y = Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3))(inputs)
     y = Activation('relu')(GaussianNoise(sigma)(y))
@@ -270,7 +271,7 @@ def tcn(inputs, n_out, *args):
 
 def cn_tcn(inputs, n_out, *args):
     """TCN by Bai et al. Called following a conv-net """
-    sigma = .05
+    sigma = .1
     # Perform convolution on each stimulus, then pass flattened feature maps as sequence to TCN
     # Applies this conv layer to each stimulus in the sequence individually
     y = TimeDistributed(Conv2D(4, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
