@@ -19,7 +19,8 @@ def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
     n = int(x.shape[-1]) - size + 1
     y = Conv2D(nchan, size, data_format="channels_first", kernel_regularizer=l2(l2_reg))(x)
     y = Reshape((nchan, n, n))(BatchNormalization(axis=-1)(Flatten()(y)))
-    return Activation('relu')(GaussianNoise(sigma)(y))
+    #return Activation('relu')(GaussianNoise(sigma)(y))
+    return Activation('relu')(y)
 
 
 def bn_cnn(inputs, n_out, l2_reg=0.01):
@@ -87,8 +88,11 @@ from keras.layers import RNN
 def fc_rnn(inputs, n_out, *args):
     """Fully Connected RNN (Batty et al.)"""
     print("input shape = ", inputs.shape)
-    y = SimpleRNN(50, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
-    y = SimpleRNN(50, activation='relu', kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
+    sigma = 0.1
+    y = SimpleRNN(50, return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = SimpleRNN(50, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
@@ -97,8 +101,11 @@ def fc_rnn(inputs, n_out, *args):
 def fc_rnn_large(inputs, n_out, *args):
     """Fully Connected RNN, scaled with input size increase (Batty et al.)"""
     print("input shape = ", inputs.shape)
-    y = SimpleRNN(80, activation='relu', return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
-    y = SimpleRNN(80, activation='relu', kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
+    sigma = 0.1
+    y = SimpleRNN(80, return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = SimpleRNN(80, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
@@ -254,14 +261,9 @@ def tcn(inputs, n_out, *args):
     #outputs = Activation('relu')(fcn + conv)
     print("Output layer ", outputs.shape)
     """
-    print("Creat TCN 1")
-    y = tcn_block(inputs, 10, dilation = 1, padding='same', kernel_size=3)
-    print("-------------------------------------------------------")
-    print("Creat TCN 2")
-    y = tcn_block(y, 5, dilation = 2, padding='same', kernel_size=3)
-    print("Creat TCN 3")
-    print("-------------------------------------------------------")
-    outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
+    y = tcn_block(inputs, 20, dilation = 1, padding='same', kernel_size=3)
+    outputs = tcn_block(y, n_out, dilation = 2, padding='same', kernel_size=3, l2_reg = 1e-2, flatten=True)
+    #outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
 
     return Model(inputs, outputs, name="TCN")
 
