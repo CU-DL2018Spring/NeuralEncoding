@@ -11,7 +11,7 @@ from keras.regularizers import l1, l2
 from deepretina import activations
 from keras.initializers import RandomNormal
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -140,10 +140,12 @@ def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
 
 from keras.layers import Dropout
 def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
-    """Standard CNN with no temporal dimension"""
+    """Standard CNN with no batch norm"""
     print(inputs.shape)
     y = Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3))(inputs)
-    y = Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3))(y)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = Conv2D(8, 11, data_format="channels_first", actvation='relu', kernel_regularizer=l2(1e-3))(y)
+    y = Activation('relu')(GaussianNoise(sigma)(y))
     y = Dense(n_out, use_bias=False)(Flatten()(y))
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='COPY_CNN')
@@ -271,7 +273,7 @@ def cn_tcn(inputs, n_out, *args):
     
     # Perform convolution on each stimulus, then pass flattened feature maps as sequence to TCN
     # Applies this conv layer to each stimulus in the sequence individually
-    y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    y = TimeDistributed(Conv2D(2, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
     print("after first conv layer", y.shape)
     #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
     #print("after second conv layer", y.shape)
@@ -279,13 +281,13 @@ def cn_tcn(inputs, n_out, *args):
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
     print("Creat TCN 1")
-    y = tcn_block(y, 10, dilation = 1, padding='same', kernel_size=3)
-    print("-------------------------------------------------------")
-    print("Creat TCN 2")
-    y = tcn_block(y, 5, dilation = 2, padding='same', kernel_size=3)
+    #y = tcn_block(y, 10, dilation = 1, padding='same', kernel_size=3)
+    #print("-------------------------------------------------------")
+    #print("Creat TCN 2")
+    y = tcn_block(y, 5, dilation = 1, padding='same', kernel_size=3)
     print("Creat TCN 3")
     print("-------------------------------------------------------")
-    outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
+    outputs = tcn_block(y, n_out, dilation = 2, padding='same', kernel_size=3, flatten=True)
 
     return Model(inputs, outputs, name="TCN")
 
