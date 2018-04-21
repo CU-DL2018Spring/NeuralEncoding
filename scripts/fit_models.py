@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large, cn_tcn
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large, cn_tcn, bn_rnn
 from deepretina.models import *
 
 
@@ -28,6 +28,10 @@ def context(func):
 @context
 def fit_bn_cnn(expt, stim):
     train(bn_cnn, expt, stim, lr=1e-2, nb_epochs=250, val_split=0.05)
+
+@context
+def fit_bn_rnn(expt, stim):
+    train(bn_rnn, expt, stim, lr=1e-2,model_args=("add_dim", "2_GPU","mse"), nb_epochs=250, val_split=0.05)
 
 @context
 def fit_bn_spat_cnn(expt, stim):
@@ -106,6 +110,8 @@ if __name__ == '__main__':
     if args.model.upper() == 'BN_CNN':
         tp.banner(f'Training BN_CNN, expt {args.expt}, {args.stim}')
         fit_bn_cnn(args.expt, args.stim)
+    elif args.model.upper() == 'BN_RNN':
+        fit_bn_rnn(args.expt, args.stim)
     elif args.model.upper() == 'BN_SPAT_CNN':
         fit_bn_spat_cnn(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN':
