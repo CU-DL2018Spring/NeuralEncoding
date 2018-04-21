@@ -75,7 +75,7 @@ def fit_spatial_cnn(expt, stim):
 
 @context
 def fit_copy_cnn(expt, stim):
-    train(copy_cnn, expt, stim, model_args=(), lr=1e-2, nb_epochs=250, val_split=0.05)
+    train(copy_cnn, expt, stim, model_args=(), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_conv_to_lstm(expt, stim):
