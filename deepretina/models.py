@@ -115,9 +115,11 @@ def fc_rnn(inputs, n_out, *args):
     print("input shape = ", inputs.shape)
     sigma = 0.1
     y = SimpleRNN(50, return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
-    y = Activation('relu')(GaussianNoise(sigma)(y))
+    #y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = Activation('relu')(y)
     y = SimpleRNN(50, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
-    y = Activation('relu')(GaussianNoise(sigma)(y))
+    #y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = Activation('relu')(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
@@ -128,9 +130,11 @@ def fc_rnn_large(inputs, n_out, *args):
     print("input shape = ", inputs.shape)
     sigma = 0.1
     y = SimpleRNN(80, return_sequences=True, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(inputs)
-    y = Activation('relu')(GaussianNoise(sigma)(y))
+    #y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = Activation('relu')(y)
     y = SimpleRNN(80, kernel_regularizer=l2(1e-3), recurrent_regularizer=l2(1e-3))(y)
-    y = Activation('relu')(GaussianNoise(sigma)(y))
+    #y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = Activation('relu')(y)
     y = Dense(n_out, init='normal')(y)
     outputs = Activation('softplus')(y)
 
