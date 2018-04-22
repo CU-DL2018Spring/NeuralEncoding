@@ -59,7 +59,7 @@ def fit_fc_rnn(expt, stim):
 
 @context
 def fit_fc_rnn_large(expt, stim):
-    train(large_fc_rnn, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(fc_rnn_large, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_fc_lstm(expt, stim):
