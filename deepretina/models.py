@@ -11,7 +11,7 @@ from keras.regularizers import l1, l2
 from deepretina import activations
 from keras.initializers import RandomNormal
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -35,6 +35,8 @@ def bn_func(x,nchan):
     n = int(x.shape[-1]) - size + 1
     y = Reshape((nchan, n, n))(BatchNormalization(axis=-1)(Flatten()(y)))
     return y
+
+
 def bn_rnn(inputs, n_out, *args, l2_reg=0.01):
     """Batchnorm CNN followed by RNN"""
     print("bn_cnn input shape = ", inputs.shape)
@@ -54,7 +56,8 @@ def bn_rnn(inputs, n_out, *args, l2_reg=0.01):
     #print("after dense layer", y.shape)
     outputs = Activation('softplus')(y)
     #print("after activation layer", outputs.shape)
-    return Model(inputs, outputs, name="CONV_TO_RNN")
+    return Model(inputs, outputs, name="BN_TO_RNN")
+
 
 def bn_spat_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Batchnorm CNN model"""
@@ -305,32 +308,31 @@ def tcn(inputs, n_out, *args):
 
 def cn_tcn(inputs, n_out, *args):
     """TCN by Bai et al. Called following a conv-net """
-    sigma = .1
     # Perform convolution on each stimulus, then pass flattened feature maps as sequence to TCN
     # Applies this conv layer to each stimulus in the sequence individually
-    y = TimeDistributed(Conv2D(4, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
-    y = Activation('relu')(GaussianNoise(sigma)(y))
+    y = TimeDistributed(Conv2D(4, 15, data_format="channels_first", activation='relu', kernel_initializer='he_normal', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    y = BatchNormalization(axis=1)(y)
     print("after first conv layer", y.shape)
     #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
     #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to TCN
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
-    conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same',
+    conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same', activation='relu',
                   kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
                   kernel_initializer=RandomNormal(stddev=0.01))(y)
-    conv = Activation('relu')(GaussianNoise(sigma)(conv))
     conv = Dropout(0.3)(conv)
+    conv = BatchNormalization(axis=1)(conv)
     print("Conv 1st layer", conv.shape)
-    conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same',
+    conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same', activation='relu',
                   kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
                   kernel_initializer=RandomNormal(stddev=0.01))(conv)
-    conv = Activation('relu')(GaussianNoise(sigma)(conv))
     conv = Dropout(0.3)(conv)
+    conv = BatchNormalization(axis=1)(conv)
     print("Conv 2nd layer", conv.shape)
     conv = Dense(n_out, init='normal')(Flatten()(conv))
     print("Conv out layer", conv.shape)
-
+    
     fcn = Conv1D(n_out,kernel_size=1,padding='same',
                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
                  kernel_initializer=RandomNormal(stddev=0.01))(y)
@@ -339,9 +341,10 @@ def cn_tcn(inputs, n_out, *args):
     print("FCN out layer", fcn.shape)
 
     outputs = Add()([conv, fcn])
+    outputs = conv
     #outputs = Activation('relu')(fcn + conv)
     print("Output layer ", outputs.shape)
-    return Model(inputs, outputs, name="TCN")
+    return Model(inputs, outputs, name="CN_TCN")
 
 
 

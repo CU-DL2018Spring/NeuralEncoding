@@ -31,7 +31,7 @@ def fit_bn_cnn(expt, stim):
 
 @context
 def fit_bn_rnn(expt, stim):
-    train(bn_rnn, expt, stim, lr=1e-2,model_args=("add_dim", "2_GPU","mse"), nb_epochs=250, val_split=0.05)
+    train(bn_rnn, expt, stim, lr=5e-3, model_args=("add_dim", "mse"), nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_bn_spat_cnn(expt, stim):
@@ -83,7 +83,7 @@ def fit_conv_to_lstm(expt, stim):
 
 @context
 def fit_conv_to_rnn(expt, stim):
-    train(conv_to_rnn, expt, stim, model_args=("add_dim","2_GPU","mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
+    train(conv_to_rnn, expt, stim, model_args=("add_dim","mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):
@@ -91,7 +91,7 @@ def fit_tcn(expt, stim):
 
 @context
 def fit_cn_tcn(expt, stim):
-    train(cn_tcn, expt, stim, model_args=("add_dim", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(cn_tcn, expt, stim, model_args=("add_dim", "mse"), lr=5e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 
 if __name__ == '__main__':
