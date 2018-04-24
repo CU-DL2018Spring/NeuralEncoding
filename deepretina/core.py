@@ -40,6 +40,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     if 'spatial' in model_args or 'tcn' in model_args:
         print("spatial/tcn")
         window = 1
+    elif "window" in model_args:
+        window = 80
     else:
         window = 40
 
@@ -76,7 +78,16 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         newX = data.X.reshape(input_shape[0],input_shape[1],input_shape[2]*input_shape[3])
     else:
         newX = data.X
-    print(newX.shape)
+    # try different val set
+    train_cutoff = int(newX.shape[0]*val_split)
+    print(train_cutoff)
+    X_train = newX[train_cutoff:]
+    y_train = data.y[train_cutoff:]
+    X_val = newX[:train_cutoff]
+    y_val = data.y[:train_cutoff]
+    print(X_train.shape)
+    
+    print(X_val.shape)
     # build the model
     n_cells = data.y.shape[1]
     x = Input(shape=newX.shape[1:])
@@ -110,8 +121,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
           ]
 
     # train
-    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_split=val_split, shuffle=True)
+    history = mdl.fit(x=X_train, y=y_train, batch_size=bz, epochs=nb_epochs,
+                      callbacks=cbs, validation_data=(X_val, y_val), shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history

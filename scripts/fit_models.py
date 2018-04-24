@@ -27,11 +27,11 @@ def context(func):
 
 @context
 def fit_bn_cnn(expt, stim):
-    train(bn_cnn, expt, stim, lr=1e-2, nb_epochs=250, val_split=0.05)
+    train(bn_cnn, expt, stim, lr=1e-2, model_args=("2_GPU"),  nb_epochs=250, val_split=0.05)
 
 @context
 def fit_bn_rnn(expt, stim):
-    train(bn_rnn, expt, stim, lr=5e-3, model_args=("add_dim", "mse"), nb_epochs=250, val_split=0.05, bz=1024)
+    train(bn_rnn, expt, stim, lr=5e-3, model_args=("add_dim", "2_GPU", "mse"), nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_bn_spat_cnn(expt, stim):
@@ -40,6 +40,10 @@ def fit_bn_spat_cnn(expt, stim):
 @context
 def fit_nips_cnn(expt, stim):
     train(nips_cnn, expt, stim, lr=1e-2, nb_epochs=250, val_split=0.05)
+
+@context
+def fit_fc(expt, stim):
+    train(fc, expt, stim, model_args=("flatten", "mse"), lr=1e-2, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_ln(expt, ci, stim, activation, l2_reg=0.1):
@@ -83,7 +87,7 @@ def fit_conv_to_lstm(expt, stim):
 
 @context
 def fit_conv_to_rnn(expt, stim):
-    train(conv_to_rnn, expt, stim, model_args=("add_dim","mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
+    train(conv_to_rnn, expt, stim, model_args=("add_dim","2_GPU", "mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):
@@ -91,7 +95,7 @@ def fit_tcn(expt, stim):
 
 @context
 def fit_cn_tcn(expt, stim):
-    train(cn_tcn, expt, stim, model_args=("add_dim", "mse"), lr=5e-4, nb_epochs=250, val_split=0.05, bz=1024)
+    train(cn_tcn, expt, stim, model_args=("add_dim", "2_GPU", "mse", "window"), lr=5e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 
 if __name__ == '__main__':
@@ -116,6 +120,8 @@ if __name__ == '__main__':
         fit_bn_spat_cnn(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN':
         fit_fc_rnn(args.expt, args.stim)
+    elif args.model.upper() == 'FC':
+        fit_fc(args.expt, args.stim)
     elif args.model.upper() == 'FC_RNN_LARGE':
         fit_fc_rnn_large(args.expt, args.stim)
     elif args.model.upper() == 'FC_LSTM':

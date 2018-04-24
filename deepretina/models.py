@@ -11,7 +11,7 @@ from keras.regularizers import l1, l2
 from deepretina import activations
 from keras.initializers import RandomNormal
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn', 'fc']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -23,7 +23,7 @@ def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
     return Activation('relu')(y)
 
 
-def bn_cnn(inputs, n_out, l2_reg=0.01):
+def bn_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Batchnorm CNN model"""
     y = bn_layer(inputs, 8, 15, l2_reg)
     y = bn_layer(y, 8, 11, l2_reg)
@@ -41,10 +41,10 @@ def bn_rnn(inputs, n_out, *args, l2_reg=0.01):
     """Batchnorm CNN followed by RNN"""
     print("bn_cnn input shape = ", inputs.shape)
     # Applies this conv layer to each stimulus in the sequence individually
-    y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
+    y = TimeDistributed(Conv2D(4, 15, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
     y = BatchNormalization(axis=1)(y)
     print("after first conv layer", y.shape)
-    y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
+    y = TimeDistributed(Conv2D(4, 11, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
     y = BatchNormalization(axis=1)(y)
     print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
@@ -127,6 +127,19 @@ def fc_rnn(inputs, n_out, *args):
     outputs = Activation('softplus')(y)
 
     return Model(inputs, outputs, name="FC_RNN")
+
+
+def fc(inputs, n_out, *args):
+    """Fully Connected RNN (Batty et al.)"""
+    #print("input shape = ", inputs.shape)
+    y = Dense(50, init='normal')(inputs)
+    y = Activation('relu')(y)
+    y = Dense(50, init='normal')(y)
+    y = Activation('relu')(y)
+    y = Dense(n_out, init='normal')(y)
+    outputs = Activation('softplus')(y)
+
+    return Model(inputs, outputs, name="FC")
 
 def fc_rnn_large(inputs, n_out, *args):
     """Fully Connected RNN, scaled with input size increase (Batty et al.)"""
