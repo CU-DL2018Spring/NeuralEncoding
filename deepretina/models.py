@@ -3,7 +3,7 @@ Construct Keras models
 """
 from __future__ import absolute_import, division, print_function
 from keras.models import Model
-from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D, Add
+from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D, Add, SpatialDropout1D
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.noise import GaussianNoise
@@ -11,7 +11,7 @@ from keras.regularizers import l1, l2
 from deepretina import activations
 from keras.initializers import RandomNormal
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn', 'fc']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn', 'fc', 'lea_tcn']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -278,7 +278,7 @@ def tcn_block(inputs, n_out, dilation, padding = 'same', kernel_size=2, dropout=
     
     # Merge ConvNet and FCN
     outputs = Add()([conv, fcn])
-    outputs = Activation('relu')(outputs)
+    outputs = Activation('softplus')(outputs)
     print("Output layer ", outputs.shape)
     return outputs
 
@@ -360,6 +360,15 @@ def cn_tcn(inputs, n_out, *args):
     return Model(inputs, outputs, name="CN_TCN")
 
 
+def lea_tcn(inputs, n_out, *args):
+    print("input shape: ", inputs.shape)
+    y = Conv1D(64, 25, padding='same', activation='relu')(inputs)
+    print("conv1d shape: ", y.shape)
+    y = SpatialDropout1D(0.3)(y)
+    print("drop shape: ", y.shape)
+    outputs = Dense(n_out, activation='softplus')(Flatten()(y))
+    print("out shape: ", outputs.shape)
+    return Model(inputs, outputs, name="LEA_TCN")
 
 # aliases
 ln = linear_nonlinear

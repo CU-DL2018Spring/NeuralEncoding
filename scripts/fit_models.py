@@ -10,7 +10,7 @@ import tensorflow as tf
 import keras.backend as K
 import tableprint as tp
 from deepretina.core import train
-from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large, cn_tcn, bn_rnn
+from deepretina.models import bn_cnn, linear_nonlinear, nips_cnn, fc_rnn, spatial_cnn, copy_cnn, conv_to_lstm, fc_lstm, conv_lstm, tcn, fc_rnn_large, cn_tcn, bn_rnn, lea_tcn
 from deepretina.models import *
 
 
@@ -91,12 +91,15 @@ def fit_conv_to_rnn(expt, stim):
 
 @context
 def fit_tcn(expt, stim):
-    train(tcn, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(tcn, expt, stim, model_args=("flatten", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_cn_tcn(expt, stim):
-    train(cn_tcn, expt, stim, model_args=("add_dim", "2_GPU", "mse", "window"), lr=5e-4, nb_epochs=250, val_split=0.05, bz=1024)
+    train(cn_tcn, expt, stim, model_args=("add_dim", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05, bz=2048)
 
+@context
+def fit_lea_tcn(expt, stim):
+    train(lea_tcn, expt, stim, model_args=("flatten", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 if __name__ == '__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -140,6 +143,8 @@ if __name__ == '__main__':
         fit_tcn(args.expt, args.stim)
     elif args.model.upper() == 'CN_TCN':
         fit_cn_tcn(args.expt, args.stim)
+    elif args.model.upper() == 'LEA_TCN':
+        fit_lea_tcn(args.expt, args.stim)
     elif args.model.upper() == 'NIPS_CNN':
         fit_nips_cnn(args.expt, args.stim)
     elif args.model.split('_')[0].upper() == 'LN':
