@@ -7,7 +7,6 @@ import h5py
 import numpy as np
 from os.path import join, expanduser
 from scipy.stats import zscore
-
 import pyret.filtertools as ft
 
 from .utils import notify
@@ -32,7 +31,7 @@ Exptdata = namedtuple('Exptdata', ['X', 'y'])
 __all__ = ['loadexpt', 'stimcut', 'CELLS']
 
 
-def loadexpt(expt, cells, filename, train_or_test, history, nskip, cutout_width=None):
+def loadexpt(expt, cells, filename, train_or_test, history, nskip, cutout_width=None, val_split=0.05):
     """Loads an experiment from an h5 file on disk
 
     Parameters
@@ -77,16 +76,24 @@ def loadexpt(expt, cells, filename, train_or_test, history, nskip, cutout_width=
 
             # load the stimulus into memory as a numpy array, and z-score it
             if cutout_width is None:
-                stim = zscore(np.array(f[train_or_test]['stimulus']).astype('float32'))
+                stim = np.array(f[train_or_test]['stimulus']).astype('float32')
             else:
-                stim = zscore(ft.cutout(np.array(f[train_or_test]['stimulus']), idx=(px, py), width=cutout_width).astype('float32'))
+                stim = ft.cutout(np.array(f[train_or_test]['stimulus']), idx=(px, py), width=cutout_width).astype('float32')
 
             # apply clipping to remove the stimulus just after transitions
             num_blocks = NUM_BLOCKS[expt] if train_or_test == 'train' and nskip > 0 else 1
             valid_indices = np.arange(expt_length).reshape(num_blocks, -1)[:, nskip:].ravel()
-
+            stim = stim[valid_indices]
+            val_cutoff = int((1-val_split) * len(stim))
+            train_set = stim[:val_cutoff]
+            mu = np.mean(train_set)
+            sigma = np.std(train_set)
+            stim = (stim-mu)/sigma
+            #print("train mean: ", mu)
+            #print("train std: ", sigma)
+            #print("train_size: ", len(train_set))
             # reshape into the Toeplitz matrix (nsamples, history, *stim_dims)
-            stim_reshaped = rolling_window(stim[valid_indices], history, time_axis=0)
+            stim_reshaped = rolling_window(stim, history, time_axis=0)
 
             # get the response for this cell (nsamples, ncells)
             resp = np.array(f[train_or_test]['response/firing_rate_10ms'][cells]).T[valid_indices]
