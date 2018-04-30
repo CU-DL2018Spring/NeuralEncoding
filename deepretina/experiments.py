@@ -83,15 +83,14 @@ def loadexpt(expt, cells, filename, train_or_test, history, nskip, cutout_width=
             # apply clipping to remove the stimulus just after transitions
             num_blocks = NUM_BLOCKS[expt] if train_or_test == 'train' and nskip > 0 else 1
             valid_indices = np.arange(expt_length).reshape(num_blocks, -1)[:, nskip:].ravel()
+            # apply normalization after splitting into train and val sets
             stim = stim[valid_indices]
             val_cutoff = int((1-val_split) * len(stim))
             train_set = stim[:val_cutoff]
             mu = np.mean(train_set)
             sigma = np.std(train_set)
             stim = (stim-mu)/sigma
-            #print("train mean: ", mu)
-            #print("train std: ", sigma)
-            #print("train_size: ", len(train_set))
+
             # reshape into the Toeplitz matrix (nsamples, history, *stim_dims)
             stim_reshaped = rolling_window(stim, history, time_axis=0)
 

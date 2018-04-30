@@ -3,7 +3,7 @@ Construct Keras models
 """
 from __future__ import absolute_import, division, print_function
 from keras.models import Model
-from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D, Add, SpatialDropout1D
+from keras.layers import Dense, Activation, Flatten, Reshape, SimpleRNN, Conv1D, Add
 from keras.layers.convolutional import Conv2D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.noise import GaussianNoise
@@ -11,7 +11,7 @@ from keras.regularizers import l1, l2
 from deepretina import activations
 from keras.initializers import RandomNormal
 
-__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn', 'fc', 'lea_tcn']
+__all__ = ['bn_cnn', 'bn_spat_cnn', 'bn_rnn', 'linear_nonlinear', 'ln', 'nips_cnn', 'fc_rnn', 'fc_rnn_large', 'spatial_cnn', 'copy_cnn', 'conv_to_lstm', 'conv_to_rnn', 'fc_lstm', 'conv_lstm', 'fc_rnn_large', 'tcn', 'cn_tcn', 'fc']
 
 
 def bn_layer(x, nchan, size, l2_reg, sigma=0.05):
@@ -31,11 +31,6 @@ def bn_cnn(inputs, n_out, *args, l2_reg=0.01):
     outputs = Activation('softplus')(BatchNormalization(axis=-1)(y))
     return Model(inputs, outputs, name='BN-CNN')
 
-def bn_func(x,nchan):
-    n = int(x.shape[-1]) - size + 1
-    y = Reshape((nchan, n, n))(BatchNormalization(axis=-1)(Flatten()(y)))
-    return y
-
 
 def bn_rnn(inputs, n_out, *args, l2_reg=0.01):
     """Batchnorm CNN followed by RNN"""
@@ -47,20 +42,17 @@ def bn_rnn(inputs, n_out, *args, l2_reg=0.01):
     y = TimeDistributed(Conv2D(4, 11, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
     y = BatchNormalization(axis=1)(y)
     print("after second conv layer", y.shape)
-    # Flatten feature maps to pass to LSTM 
+    # Flatten feature maps to pass to RNN 
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
     y = SimpleRNN(50, activation='relu', kernel_initializer='random_normal', recurrent_initializer='random_normal')(y)
-    #print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
-    #print("after dense layer", y.shape)
     outputs = Activation('softplus')(y)
-    #print("after activation layer", outputs.shape)
     return Model(inputs, outputs, name="BN_TO_RNN")
 
 
 def bn_spat_cnn(inputs, n_out, *args, l2_reg=0.01):
-    """Batchnorm CNN model"""
+    """Spatial Batchnorm CNN model"""
     y = bn_layer(inputs, 8, 15, l2_reg)
     y = bn_layer(y, 8, 11, l2_reg)
     y = Dense(n_out, use_bias=False)(Flatten()(y))
@@ -130,8 +122,7 @@ def fc_rnn(inputs, n_out, *args):
 
 
 def fc(inputs, n_out, *args):
-    """Fully Connected RNN (Batty et al.)"""
-    #print("input shape = ", inputs.shape)
+    """Fully Connected Network"""
     y = Dense(50, init='normal')(inputs)
     y = Activation('relu')(y)
     y = Dense(50, init='normal')(y)
@@ -190,7 +181,7 @@ def spatial_cnn(inputs, n_out, *args, l2_reg=0.01):
     outputs = Activation('softplus')(y)
     return Model(inputs, outputs, name='SPAT_CNN')
 
-from keras.layers import Dropout
+
 def copy_cnn(inputs, n_out, *args, l2_reg=0.01):
     """Standard CNN with no batch norm"""
     sigma=0.05
@@ -212,7 +203,6 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
     y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
     print("after first conv layer", y.shape)
     #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
-    #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
@@ -227,23 +217,16 @@ def conv_to_lstm(inputs, n_out, *args, l2_reg=0.01):
 def conv_to_rnn(inputs, n_out, *args, l2_reg=0.01):
     sigma = 0.05
     """Convolution on each stimulus, then pass sequence to an RNN"""
-    #print("conv_to_rnn input shape = ", inputs.shape)
     # Applies this conv layer to each stimulus in the sequence individually
     y = TimeDistributed(Conv2D(8, 15, data_format="channels_first", kernel_regularizer=l2(1e-3)), input_shape=(40, 1, 50, 50))(inputs)
     y = Activation('relu')(GaussianNoise(sigma)(y))
-    #print("after first conv layer", y.shape)
     y = TimeDistributed(Conv2D(8, 11, data_format="channels_first", kernel_regularizer=l2(1e-3)))(y)
     y = Activation('relu')(GaussianNoise(sigma)(y))
-    #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to LSTM 
     y = TimeDistributed(Flatten())(y)
-    #print("after flatten layer", y.shape)
     y = SimpleRNN(50, activation='relu', kernel_initializer='random_normal', recurrent_initializer='random_normal')(y)
-    #print("after lstm layer", y.shape)
     y = Dense(n_out, init='normal')(y)
-    #print("after dense layer", y.shape)
     outputs = Activation('softplus')(y)
-    #print("after activation layer", outputs.shape)
     return Model(inputs, outputs, name="CONV_TO_RNN")
 
 def tcn_block(inputs, n_out, dilation, padding = 'same', kernel_size=2, dropout=0.3, l2_reg = 1e-3, flatten = False):
@@ -284,37 +267,8 @@ def tcn_block(inputs, n_out, dilation, padding = 'same', kernel_size=2, dropout=
 
 def tcn(inputs, n_out, *args):
     """TCN by Bai et al. Called following a conv-net """
-    """
-    print("TCN input shape = ", inputs.shape)
-    conv = Conv1D(filters = 8, kernel_size = 3, strides = 1, dilation_rate = 1, padding = 'same',
-                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
-                  kernel_initializer=RandomNormal(stddev=0.01))(inputs)
-    conv = Activation('relu')(conv)
-    conv = Dropout(0.3)(conv)
-    print("Conv 1st layer", conv.shape)
-    conv = Conv1D(filters = 5, kernel_size = 2, strides = 1, dilation_rate = 2, padding = 'same',
-                  kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
-                  kernel_initializer=RandomNormal(stddev=0.01))(conv)
-    conv = Activation('relu')(conv)
-    conv = Dropout(0.3)(conv)
-    print("Conv 2nd layer", conv.shape)
-    conv = Dense(n_out, init='normal')(Flatten()(conv))
-    print("Conv out layer", conv.shape)
-
-    fcn = Conv1D(n_out,kernel_size=1,padding='same',
-                 kernel_regularizer=l2(1e-3), bias_regularizer=l2(1e-3),
-                 kernel_initializer=RandomNormal(stddev=0.01))(inputs)
-    print("FCN 1st layer", fcn.shape)
-    fcn = Dense(n_out, init='normal')(Flatten()(fcn))
-    print("FCN out layer", fcn.shape)
-
-    outputs = Add()([conv, fcn])
-    #outputs = Activation('relu')(fcn + conv)
-    print("Output layer ", outputs.shape)
-    """
     y = tcn_block(inputs, 20, dilation = 1, padding='same', kernel_size=3)
     outputs = tcn_block(y, n_out, dilation = 2, padding='same', kernel_size=3, l2_reg = 1e-2, flatten=True)
-    #outputs = tcn_block(y, n_out, dilation = 4, padding='same', kernel_size=3, flatten=True)
 
     return Model(inputs, outputs, name="TCN")
 
@@ -327,7 +281,6 @@ def cn_tcn(inputs, n_out, *args):
     y = BatchNormalization(axis=1)(y)
     print("after first conv layer", y.shape)
     #y = TimeDistributed(Conv2D(8, 7, data_format="channels_first", activation='relu', kernel_regularizer=l2(1e-3)))(y)
-    #print("after second conv layer", y.shape)
     # Flatten feature maps to pass to TCN
     y = TimeDistributed(Flatten())(y)
     print("after flatten layer", y.shape)
@@ -354,21 +307,10 @@ def cn_tcn(inputs, n_out, *args):
     print("FCN out layer", fcn.shape)
 
     outputs = Add()([conv, fcn])
-    outputs = conv
-    #outputs = Activation('relu')(fcn + conv)
+    outputs = Activation('softplus')(outputs)
     print("Output layer ", outputs.shape)
     return Model(inputs, outputs, name="CN_TCN")
 
-
-def lea_tcn(inputs, n_out, *args):
-    print("input shape: ", inputs.shape)
-    y = Conv1D(64, 25, padding='same', activation='relu')(inputs)
-    print("conv1d shape: ", y.shape)
-    y = SpatialDropout1D(0.3)(y)
-    print("drop shape: ", y.shape)
-    outputs = Dense(n_out, activation='softplus')(Flatten()(y))
-    print("out shape: ", outputs.shape)
-    return Model(inputs, outputs, name="LEA_TCN")
 
 # aliases
 ln = linear_nonlinear

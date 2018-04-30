@@ -13,8 +13,6 @@ from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 
 __all__ = ['train', 'load']
 
@@ -37,9 +35,10 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         cellname = f'cell-{cells[0]+1:02d}'
 
     # Get rid of temporal dimension
-    if 'spatial' in model_args or 'tcn' in model_args:
-        print("spatial/tcn")
+    if 'spatial' in model_args:
+        print("spatial")
         window = 1
+    # Set increased history length
     elif "window" in model_args:
         window = 80
     else:
@@ -64,11 +63,6 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
         print(input_shape)
         # All three methods work, decide later if any of them are preferable
         newX = data.X[:,:,np.newaxis,:,:]
-        print("newX = ", newX.shape)
-        #newX2 = np.expand_dims(data.X, axis=2)
-        #print("newX2 = ", newX2.shape)
-        #newX3 = data.X.reshape(input_shape[0], input_shape[1], 1, input_shape[2], input_shape[3])
-        #print("newX3 = ", newX3.shape)
 
     # flatten if
     elif 'flatten' in model_args:
@@ -79,6 +73,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     else:
         newX = data.X
     # try different val set
+    """
     train_cutoff = int(newX.shape[0]*val_split)
     print(train_cutoff)
     X_train = newX[train_cutoff:]
@@ -88,6 +83,7 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
     print(X_train.shape)
     
     print(X_val.shape)
+    """
     # build the model
     n_cells = data.y.shape[1]
     x = Input(shape=newX.shape[1:])
@@ -121,8 +117,8 @@ def train(model, expt, stim, model_args=(), lr=1e-2, bz=5000, nb_epochs=500, val
           ]
 
     # train
-    history = mdl.fit(x=X_train, y=y_train, batch_size=bz, epochs=nb_epochs,
-                      callbacks=cbs, validation_data=(X_val, y_val), shuffle=True)
+    history = mdl.fit(x=newX, y=data.y, batch_size=bz, epochs=nb_epochs,
+                      callbacks=cbs, validation_split=val_split, shuffle=True)
     dd.io.save(os.path.join(base, 'history.h5'), history.history)
 
     return history
