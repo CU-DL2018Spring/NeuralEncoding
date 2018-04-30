@@ -37,6 +37,6 @@ The authors of McIntosh et al. shared a portion of the data set (5 of 37 cells) 
 The authors would like to thank Professor Drori and Ted Moskovitz for their guidance and helpful suggestions throughout the project. The authors would also like to thank Lane McIntosh for generously sharing his retinal data set with us.
 
 ## Authors
-Yan-Song Chen
-Daniel Jaroslawicz
-Jake Lee
+Yan-Song Chen,
+Daniel Jaroslawicz,
+Jake Lee,
