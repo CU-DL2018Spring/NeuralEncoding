@@ -26,11 +26,11 @@ def context(func):
 
 @context
 def fit_bn_cnn(expt, stim):
-    train(bn_cnn, expt, stim, lr=1e-2, model_args=("2_GPU"),  nb_epochs=250, val_split=0.05)
+    train(bn_cnn, expt, stim, lr=1e-2,  nb_epochs=250, val_split=0.05)
 
 @context
 def fit_bn_rnn(expt, stim):
-    train(bn_rnn, expt, stim, lr=5e-3, model_args=("add_dim", "2_GPU", "mse"), nb_epochs=250, val_split=0.05, bz=1024)
+    train(bn_rnn, expt, stim, lr=5e-3, model_args=("add_dim", "mse"), nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_bn_spat_cnn(expt, stim):
@@ -70,7 +70,7 @@ def fit_fc_lstm(expt, stim):
 
 @context
 def fit_conv_lstm(expt, stim):
-    train(conv_lstm, expt, stim, model_args=("add_dim", "2_GPU"), lr=1e-3, bz=128, nb_epochs=250, val_split=0.05)
+    train(conv_lstm, expt, stim, model_args=("add_dim"), lr=1e-3, bz=128, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_spatial_cnn(expt, stim):
@@ -86,15 +86,15 @@ def fit_conv_to_lstm(expt, stim):
 
 @context
 def fit_conv_to_rnn(expt, stim):
-    train(conv_to_rnn, expt, stim, model_args=("add_dim","2_GPU", "mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
+    train(conv_to_rnn, expt, stim, model_args=("add_dim", "mse"), lr=1e-4, nb_epochs=250, val_split=0.05, bz=1024)
 
 @context
 def fit_tcn(expt, stim):
-    train(tcn, expt, stim, model_args=("flatten", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
+    train(tcn, expt, stim, model_args=("flatten", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05)
 
 @context
 def fit_cn_tcn(expt, stim):
-    train(cn_tcn, expt, stim, model_args=("add_dim", "2_GPU", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05, bz=2048)
+    train(cn_tcn, expt, stim, model_args=("add_dim", "mse"), lr=1e-3, nb_epochs=250, val_split=0.05, bz=2048)
 
 
 if __name__ == '__main__':
